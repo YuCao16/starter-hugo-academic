@@ -1,0 +1,63 @@
+---
+title: Comparison of data dimensionality reduction methods
+author: Yu Cao
+date: '2021-08-20'
+slug: comparison-of-data-dimensionality-reduction-methods
+categories:
+  - Data Mining
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2021-10-06T16:52:39+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<pre class="r"><code>library(tidyverse)</code></pre>
+<pre class="r"><code>billboard &lt;- readr::read_csv(&quot;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-09-14/billboard.csv&quot;)
+
+audio_features &lt;- readr::read_csv(&quot;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-09-14/audio_features.csv&quot;)</code></pre>
+<pre class="r"><code>max_weeks &lt;- billboard %&gt;% 
+  group_by(song_id) %&gt;% 
+  summarise(weeks_on_chart = max(weeks_on_chart))
+
+billboard_joined &lt;- audio_features %&gt;% 
+  filter(!is.na(danceability)) %&gt;% 
+  inner_join(max_weeks, by = &quot;song_id&quot;)</code></pre>
+<pre class="r"><code>billboard_joined %&gt;% 
+  ggplot(aes(tempo, fill = factor(time_signature))) + 
+  geom_histogram(alpha = 0.6, position = &quot;identity&quot;, bins = 30)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code>library(corrr)
+
+billboard_joined %&gt;% 
+  select(danceability:weeks_on_chart) %&gt;% 
+  na.omit() %&gt;% 
+  correlate() %&gt;% 
+  rearrange() %&gt;% 
+  network_plot(colors = c(&quot;orange&quot;, &quot;white&quot;, &quot;midnightblue&quot;))</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<pre class="r"><code>head(billboard)</code></pre>
+<pre><code>## # A tibble: 6 × 10
+##   url    week_id week_position song  performer song_id instance previous_week_p…
+##   &lt;chr&gt;  &lt;chr&gt;           &lt;dbl&gt; &lt;chr&gt; &lt;chr&gt;     &lt;chr&gt;      &lt;dbl&gt;            &lt;dbl&gt;
+## 1 http:… 7/17/1…            34 Don&#39;… Patty Du… Don&#39;t …        1               45
+## 2 http:… 7/24/1…            22 Don&#39;… Patty Du… Don&#39;t …        1               34
+## 3 http:… 7/31/1…            14 Don&#39;… Patty Du… Don&#39;t …        1               22
+## 4 http:… 8/7/19…            10 Don&#39;… Patty Du… Don&#39;t …        1               14
+## 5 http:… 8/14/1…             8 Don&#39;… Patty Du… Don&#39;t …        1               10
+## 6 http:… 8/21/1…             8 Don&#39;… Patty Du… Don&#39;t …        1                8
+## # … with 2 more variables: peak_position &lt;dbl&gt;, weeks_on_chart &lt;dbl&gt;</code></pre>
+<pre class="r"><code>billboard %&gt;% 
+  filter(song_id == &quot;Don&#39;t Just Stand There&quot;) %&gt;% 
+  ggplot(aes(previous_week_position, week_position)) + 
+  geom_line()</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
