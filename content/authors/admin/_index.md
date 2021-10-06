@@ -1,5 +1,5 @@
 ---
-title: Yu Cao
+title: Yiyun Ding
 role: Professor of Artificial Intelligence
 bio: My research interests include distributed robotics, mobile computing and
   programmable matter.
