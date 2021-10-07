@@ -17,10 +17,10 @@ image:
   preview_only: no
 projects: []
 ---
+
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 library(tidyverse)
 ```
-
 
 ```{r message=FALSE, results='hide',warning=FALSE, echo=TRUE, }
 billboard <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-09-14/billboard.csv")
@@ -54,9 +54,11 @@ billboard_joined %>%
   rearrange() %>% 
   network_plot(colors = c("orange", "white", "midnightblue"))
 ```
+
 ```{r}
 head(billboard)
 ```
+
 ```{r}
 billboard %>% 
   filter(song_id == "Don't Just Stand There") %>% 
@@ -64,3 +66,6 @@ billboard %>%
   geom_line()
 ```
 
+```{r}
+df <- read_csv("https://raw.githubusercontent.com/YuCao16/about_me/main/train.csv")
+```

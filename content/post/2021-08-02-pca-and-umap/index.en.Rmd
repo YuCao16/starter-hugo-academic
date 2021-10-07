@@ -1,0 +1,260 @@
+---
+title: PCA and UMAP
+author: Yu Cao
+date: '2021-08-02'
+slug: pca-and-umap
+categories:
+  - Data Mining
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2021-10-07T11:40:50+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+In this blog, I mainly compared two dimensionality reduction methods, i.e. PCA (Principle Component Analysis) and UMAP (Uniform manifold approximation and projection). Let's explore which one is better, PCA, the traditional method of dimensionality reduction or, UMAP the new boy.
+
+Let's start with data mining. If you want to remember the codes, then you need to practice them everyday, right?
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+library(tidyverse)
+library(janitor)
+```
+
+The dataset used in this blog comes from [TidyTuesday Dataset](https://github.com/rfordatascience/tidytuesday), 2020-05-26, about cocktail recipes.
+
+```{r message=FALSE}
+boston_cocktails <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-26/boston_cocktails.csv")
+
+boston_cocktails %>% 
+  count(ingredient, sort = TRUE)
+```
+
+Although there are no missing values in this dataset, the 'ingredient' column, for example, contains many duplicate labes, such as Juice of a Lime and Lime Juice. So I did a series of data cleaning, which involved sorting out the duplicate labels in column 'ingredient' and, converting the categorical variables in the 'measure' column to numerical varables, and here is the codes:
+
+```{r}
+cocktails_parsed <- boston_cocktails %>%
+  filter(!measure == "splash") %>% 
+  mutate(
+    ingredient = str_to_lower(ingredient),
+    ingredient = str_replace_all(ingredient, "-", " "),
+    ingredient = str_remove(ingredient, " liqueur$"),
+    ingredient = str_remove(ingredient, " (if desired)$"),
+    ingredient = case_when(
+      str_detect(ingredient, "bitters") ~ "bitters",
+      str_detect(ingredient, "lemon") ~ "lemon juice",
+      str_detect(ingredient, "lime") ~ "lime juice",
+      str_detect(ingredient, "grapefruit") ~ "grapefruit juice",
+      str_detect(ingredient, "orange") ~ "orange juice",
+      TRUE ~ ingredient
+    ),
+    measure = str_replace(measure, " ?1/2", ".5"),
+    measure = str_replace(measure, " ?3/4", ".75"),
+    measure = str_replace(measure, " ?1/4", ".25"),
+    measure = str_replace(measure, " ?For glass", "12"),
+    measure_number = parse_number(measure)) %>% 
+  add_count(ingredient) %>%
+  filter(n > 15) %>%
+  select(-n) %>%
+  distinct(row_id, ingredient, .keep_all = TRUE) %>%
+  na.omit() %>% 
+  select(-ingredient_number, -row_id, -measure)
+```
+
+Now it looks much better, doesn't it?
+
+```{r}
+cocktails_parsed
+```
+
+It's time for modeling, in order to apply dimensionality reduction method, you should at least have a high dimension dataset, right? What I gonna do is make the dataset wider by using `pivot_wider()` from package `tidyr`.
+
+```{r}
+cocktails_df <- cocktails_parsed %>% 
+  pivot_wider(names_from = ingredient, values_from = measure_number, values_fill = 0) %>% 
+  janitor::clean_names() %>% 
+  na.omit()
+
+cocktails_df
+```
+
+Here we go, we got a dataset with 42 columns, which is a series problem if you gonna do some classification word on this dataset. In the following, I will demonstrate the two dimensionality reduction method separately.
+
+### Principle Component Analysis
+
+One of the benefits of the `tidymodels` ecosystem is the flexibility and ease of trying different approaches for the same kind of task. With function `recipe`, you don't have to perform every step, you only need to write them down.
+
+```{r message=FALSE, results='hide'}
+library(tidymodels)
+
+pca_rec <- recipe(~ ., data = cocktails_df) %>% 
+  update_role(name, category, new_role = "id") %>% 
+  step_normalize(all_predictors()) %>% 
+  step_pca(all_predictors(), num_comp = 2)
+
+pca_prep <- prep(pca_rec)
+
+pca_prep
+```
+
+Here, let's focus on the variable `pca_rec`, what we have done is: \* First, tell `recipe()` what's going on with our model and what data we are using. \* Second, we update the role of `name` and `category` columns by function `update_role()`, since these are variables we want to keep around as identifiers for rows. \* Then we need to center and scale the numeric predictors. \* Finally, we use `step_pca` for the actual principal component analysis. Note that actually, the PCA step is the second step. The `prep` estimate the required parameters from a training set that can be later applied to other datasets for us.
+
+Once we have our recipe done, we can explore the results by using `tidy()`, which makes it possible to visualize what each components look like.
+
+```{r}
+tidied_pca <- tidy(pca_prep, 2)
+
+tidied_pca %>% filter(component %in% paste0("PC", 1:5)) %>% 
+  mutate(component = fct_inorder(component)) %>% 
+  ggplot(aes(value, terms, fill = terms)) + 
+  geom_col(show.legend = FALSE) + 
+  facet_wrap(~component, nrow = 1) + 
+  labs(y = "")
+```
+
+In the plot above, we can see how much every component contributes to each `category`. Clearly, the biggest difference in PC1 is powdered sugar vs. simple syrup. Let's zoom in on the first four components, and understand which cocktail ingredients contribute in the positive and negative directions.
+
+```{r}
+library(tidytext)
+
+tidied_pca %>% 
+  filter(component %in% paste0("PC", 1:4)) %>% 
+  group_by(component) %>% 
+  top_n(8, abs(value)) %>% 
+  ungroup() %>% 
+  mutate(terms = reorder_within(terms, abs(value), component)) %>% 
+  ggplot(aes(abs(value), terms, fill = value > 0)) + 
+  geom_col() + 
+  scale_y_reordered() +
+  facet_wrap(~component, scales = "free_y") + 
+  labs(fill = "positive?")
+```
+
+So PC1 is about powdered sugar + egg + gin drinks vs. simple syrup + lime + tequila drinks. This is the component that explains the most variation in drinks. PC2 is mostly about vermouth, both sweet and dry.
+
+```{r}
+bake(pca_prep, new_data = NULL) %>%
+  ggplot(aes(PC1, PC2, label = name)) +
+  geom_point(aes(color = category), alpha = 0.7, size = 2) +
+  geom_text(check_overlap = TRUE) +
+  labs(color = NULL)
+```
+
+The plot above shows how the cocktails distributed in the plane of the first two components. The `bake()` return the computations accroding to the `recipe`. We can conclude: \* Fizzy, egg, poweder sugar drinks are to the left. \* Simple syrup, lime, tequila drinks are to the right. \* Vermouth drinks are more to the top. Although many labels are mixed together, they may be distinguishable on other components.
+
+### Uniform manifold approximation and projection
+
+Thanks to the benefits of the `tidymodels` ecosystem, we can switch out PCA for UMAP, simply by replace `step_pca()` by `step_umap`. Before that, don't forget to import package `embed`, which provide recipe steps for ways to create embeddings including UMAP.
+
+```{r message=FALSE, results='hide'}
+library(embed)
+
+umap_rec <- recipe(~ ., data = cocktails_df) %>% 
+  update_role(name, category, new_role = "id") %>% 
+  step_normalize(all_predictors()) %>% 
+  step_umap(all_predictors(), num_comp = 5)
+
+umap_prep <- prep(umap_rec)
+
+umap_prep
+```
+
+Similarly, we can see how the cocktails are distributed in the plane of the first two UMAP components.
+
+```{r}
+bake(umap_prep, new_data = NULL) %>%
+  ggplot(aes(umap_1, umap_2, label = name)) +
+  geom_point(aes(color = category), alpha = 0.7, size = 2) +
+  geom_text(check_overlap = TRUE) +
+  labs(color = NULL)
+```
+
+You can see that the distribution of the first two components of UMAP is totally different from PCA. Obviously, most of the categories didn't mix together. That's what I'm talking about. And I can tell, the performance of the classification algorithm trained on the first two components of UMAP will definitely better than of PCA. Let's prove it on the kernel SVM (Support Vector Machine).
+
+```{r, message=FALSE, results='hide', warning=FALSE}
+library(e1071)
+
+svm_test <- function(num_compo, meth){
+  if(meth == "PCA"){
+    rec <- recipe(~ ., data = cocktails_df) %>% 
+    update_role(name, category, new_role = "id") %>% 
+    step_normalize(all_predictors()) %>% 
+    step_pca(all_predictors(), num_comp = num_compo)
+  }
+  
+  if(meth == "UMAP"){
+    rec <- recipe(~ ., data = cocktails_df) %>% 
+    update_role(name, category, new_role = "id") %>% 
+    step_normalize(all_predictors()) %>% 
+    step_umap(all_predictors(), num_comp = num_compo)
+  }
+  
+  df <- bake(prep(rec), new_data = NULL)
+  
+  n <- nrow(df)
+  ntrain <- round(n * 0.75)
+  set.seed(123)
+  
+  tindex <- sample(n, ntrain)
+  train_iris <- df[tindex, ]
+  test_iris <- df[-tindex, ]
+
+  svm1 <- svm(category~., data = train_iris, method = "C-classification", 
+              kernal="radial", gamma = 0.1, cost = 10)
+  
+  prediction <- predict(svm1, test_iris)
+
+  xtab <- table(test_iris$category, prediction)
+  result <- data.frame(test_iris$category, prediction)
+  accuracy <- sum(test_iris$category == prediction) / nrow(test_iris)
+  return(accuracy)
+}
+```
+
+Here is a function require two variables input, the number of component and demensionality reduction method, and output the accuracy of the classification. Let's first verify the performance of the first two components.
+
+```{r}
+cat("PCA: ",svm_test(2, "PCA"), ", UMAP: ",svm_test(2,"UMAP"))
+```
+
+Obviously, the first two components of UMAP contains more classification information, at least make the SVM classify more accurate.
+
+You think that's the end of it? We know that, in real life, we should always consider the time cost, and that is the meaningful of the dimensionality reduction method. So let add the time cost into the comparision, start by finding out how many components PCA needs to achieve the same accuracy as UMAP.
+
+```{r}
+result_pca <- 1:10 %>% map_dbl(svm_test, meth = "PCA") 
+result_umap <- 1:10 %>% map_dbl(svm_test, meth = "UMAP") 
+result <- data.frame(pca = result_pca,
+                     umap = result_umap) %>% stack()
+
+result$index <- c(1:10,1:10)
+
+result  %>% 
+  ggplot(aes(index, values, color = ind)) + 
+  geom_line() + 
+  labs(color = "method")
+```
+
+Seems like the accuracy converge at 75% as the number of components increase, actually after 5 components, PCA performs better than UMAP. Basically, PCA needs at least 5 components to get the height of UMAP.
+
+```{r}
+library(microbenchmark)
+time_UMAP <- microbenchmark(svm_test(3,"UMAP"), times = 10, unit="s")
+time_PCA <- microbenchmark(svm_test(5,"PCA"), times = 10, unit="s")
+cat("UMAP: ", mean(time_UMAP$time)/1e9, ", PCA: ", mean(time_PCA$time/1e9))
+```
+
+Here is the result, PCA undoubtedly crushes UMAP. I know, I know, you mean that this is because the dataset is so small that the advantages of low dimensionality are not fully realezed, and this is just one example and doesn't tell us much. I totally agree, I really am. **What I would like to say is, the job of a data analyst should not be to blindly pursue new technologies, but to be flexible and efficient in getting tasks done.**
+
+Some of the code for the data mining section is taken from [here](https://www.youtube.com/watch?v=_1msVvPE_KY), I'm very grateful to [Julia Silge](https://www.youtube.com/watch?v=_1msVvPE_KY) and [David Robinson](https://www.youtube.com/watch?v=_1msVvPE_KY) for their videos.
+
+
+**Leave a message if you like this blog.**
+
+

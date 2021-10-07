@@ -1,0 +1,250 @@
+---
+title: PCA and UMAP
+author: Yu Cao
+date: '2021-08-02'
+slug: pca-and-umap
+categories:
+  - Data Mining
+tags: []
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2021-10-07T11:40:50+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+<script src="{{< blogdown/postref >}}index.en_files/header-attrs/header-attrs.js"></script>
+
+
+<p>In this blog, I mainly compared two dimensionality reduction methods, i.e. PCA (Principle Component Analysis) and UMAP (Uniform manifold approximation and projection). Let’s explore which one is better, PCA, the traditional method of dimensionality reduction or, UMAP the new boy.</p>
+<p>Let’s start with data mining. If you want to remember the codes, then you need to practice them everyday, right?</p>
+<pre class="r"><code>library(tidyverse)
+library(janitor)</code></pre>
+<p>The dataset used in this blog comes from <a href="https://github.com/rfordatascience/tidytuesday">TidyTuesday Dataset</a>, 2020-05-26, about cocktail recipes.</p>
+<pre class="r"><code>boston_cocktails &lt;- readr::read_csv(&quot;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-05-26/boston_cocktails.csv&quot;)
+
+boston_cocktails %&gt;% 
+  count(ingredient, sort = TRUE)</code></pre>
+<pre><code>## # A tibble: 569 × 2
+##    ingredient            n
+##    &lt;chr&gt;             &lt;int&gt;
+##  1 Gin                 176
+##  2 Fresh lemon juice   138
+##  3 Simple Syrup        115
+##  4 Vodka               114
+##  5 Light Rum           113
+##  6 Dry Vermouth        107
+##  7 Fresh Lime Juice    107
+##  8 Triple Sec          107
+##  9 Powdered Sugar       90
+## 10 Grenadine            85
+## # … with 559 more rows</code></pre>
+<p>Although there are no missing values in this dataset, the ‘ingredient’ column, for example, contains many duplicate labes, such as Juice of a Lime and Lime Juice. So I did a series of data cleaning, which involved sorting out the duplicate labels in column ‘ingredient’ and, converting the categorical variables in the ‘measure’ column to numerical varables, and here is the codes:</p>
+<pre class="r"><code>cocktails_parsed &lt;- boston_cocktails %&gt;%
+  filter(!measure == &quot;splash&quot;) %&gt;% 
+  mutate(
+    ingredient = str_to_lower(ingredient),
+    ingredient = str_replace_all(ingredient, &quot;-&quot;, &quot; &quot;),
+    ingredient = str_remove(ingredient, &quot; liqueur$&quot;),
+    ingredient = str_remove(ingredient, &quot; (if desired)$&quot;),
+    ingredient = case_when(
+      str_detect(ingredient, &quot;bitters&quot;) ~ &quot;bitters&quot;,
+      str_detect(ingredient, &quot;lemon&quot;) ~ &quot;lemon juice&quot;,
+      str_detect(ingredient, &quot;lime&quot;) ~ &quot;lime juice&quot;,
+      str_detect(ingredient, &quot;grapefruit&quot;) ~ &quot;grapefruit juice&quot;,
+      str_detect(ingredient, &quot;orange&quot;) ~ &quot;orange juice&quot;,
+      TRUE ~ ingredient
+    ),
+    measure = str_replace(measure, &quot; ?1/2&quot;, &quot;.5&quot;),
+    measure = str_replace(measure, &quot; ?3/4&quot;, &quot;.75&quot;),
+    measure = str_replace(measure, &quot; ?1/4&quot;, &quot;.25&quot;),
+    measure = str_replace(measure, &quot; ?For glass&quot;, &quot;12&quot;),
+    measure_number = parse_number(measure)) %&gt;% 
+  add_count(ingredient) %&gt;%
+  filter(n &gt; 15) %&gt;%
+  select(-n) %&gt;%
+  distinct(row_id, ingredient, .keep_all = TRUE) %&gt;%
+  na.omit() %&gt;% 
+  select(-ingredient_number, -row_id, -measure)</code></pre>
+<p>Now it looks much better, doesn’t it?</p>
+<pre class="r"><code>cocktails_parsed</code></pre>
+<pre><code>## # A tibble: 2,561 × 4
+##    name                 category          ingredient     measure_number
+##    &lt;chr&gt;                &lt;chr&gt;             &lt;chr&gt;                   &lt;dbl&gt;
+##  1 Gauguin              Cocktail Classics light rum                2   
+##  2 Gauguin              Cocktail Classics lemon juice              1   
+##  3 Gauguin              Cocktail Classics lime juice               1   
+##  4 Fort Lauderdale      Cocktail Classics light rum                1.5 
+##  5 Fort Lauderdale      Cocktail Classics sweet vermouth           0.5 
+##  6 Fort Lauderdale      Cocktail Classics orange juice             0.25
+##  7 Fort Lauderdale      Cocktail Classics lime juice               0.25
+##  8 Cuban Cocktail No. 1 Cocktail Classics lime juice               0.5 
+##  9 Cuban Cocktail No. 1 Cocktail Classics powdered sugar           0.5 
+## 10 Cuban Cocktail No. 1 Cocktail Classics light rum                2   
+## # … with 2,551 more rows</code></pre>
+<p>It’s time for modeling, in order to apply dimensionality reduction method, you should at least have a high dimension dataset, right? What I gonna do is make the dataset wider by using <code>pivot_wider()</code> from package <code>tidyr</code>.</p>
+<pre class="r"><code>cocktails_df &lt;- cocktails_parsed %&gt;% 
+  pivot_wider(names_from = ingredient, values_from = measure_number, values_fill = 0) %&gt;% 
+  janitor::clean_names() %&gt;% 
+  na.omit()
+
+cocktails_df</code></pre>
+<pre><code>## # A tibble: 937 × 42
+##    name    category light_rum lemon_juice lime_juice sweet_vermouth orange_juice
+##    &lt;chr&gt;   &lt;chr&gt;        &lt;dbl&gt;       &lt;dbl&gt;      &lt;dbl&gt;          &lt;dbl&gt;        &lt;dbl&gt;
+##  1 Gauguin Cocktai…      2           1          1               0           0   
+##  2 Fort L… Cocktai…      1.5         0          0.25            0.5         0.25
+##  3 Cuban … Cocktai…      2           0          0.5             0           0   
+##  4 Cool C… Cocktai…      0           0          0               0           1   
+##  5 John C… Whiskies      0           1          0               0           0   
+##  6 Cherry… Cocktai…      1.25        0          0               0           0   
+##  7 Casa B… Cocktai…      2           0          1.5             0           0   
+##  8 Caribb… Cocktai…      0.5         0          0               0           0   
+##  9 Amber … Cordial…      0           0.25       0               0           0   
+## 10 The Jo… Whiskies      0           0.5        0               0           0   
+## # … with 927 more rows, and 35 more variables: powdered_sugar &lt;dbl&gt;,
+## #   dark_rum &lt;dbl&gt;, cranberry_juice &lt;dbl&gt;, pineapple_juice &lt;dbl&gt;,
+## #   bourbon_whiskey &lt;dbl&gt;, simple_syrup &lt;dbl&gt;, cherry_flavored_brandy &lt;dbl&gt;,
+## #   light_cream &lt;dbl&gt;, triple_sec &lt;dbl&gt;, maraschino &lt;dbl&gt;, amaretto &lt;dbl&gt;,
+## #   grenadine &lt;dbl&gt;, apple_brandy &lt;dbl&gt;, brandy &lt;dbl&gt;, gin &lt;dbl&gt;,
+## #   anisette &lt;dbl&gt;, dry_vermouth &lt;dbl&gt;, apricot_flavored_brandy &lt;dbl&gt;,
+## #   bitters &lt;dbl&gt;, straight_rye_whiskey &lt;dbl&gt;, benedictine &lt;dbl&gt;, …</code></pre>
+<p>Here we go, we got a dataset with 42 columns, which is a series problem if you gonna do some classification word on this dataset. In the following, I will demonstrate the two dimensionality reduction method separately.</p>
+<div id="principle-component-analysis" class="section level3">
+<h3>Principle Component Analysis</h3>
+<p>One of the benefits of the <code>tidymodels</code> ecosystem is the flexibility and ease of trying different approaches for the same kind of task. With function <code>recipe</code>, you don’t have to perform every step, you only need to write them down.</p>
+<pre class="r"><code>library(tidymodels)
+
+pca_rec &lt;- recipe(~ ., data = cocktails_df) %&gt;% 
+  update_role(name, category, new_role = &quot;id&quot;) %&gt;% 
+  step_normalize(all_predictors()) %&gt;% 
+  step_pca(all_predictors(), num_comp = 2)
+
+pca_prep &lt;- prep(pca_rec)
+
+pca_prep</code></pre>
+<p>Here, let’s focus on the variable <code>pca_rec</code>, what we have done is: * First, tell <code>recipe()</code> what’s going on with our model and what data we are using. * Second, we update the role of <code>name</code> and <code>category</code> columns by function <code>update_role()</code>, since these are variables we want to keep around as identifiers for rows. * Then we need to center and scale the numeric predictors. * Finally, we use <code>step_pca</code> for the actual principal component analysis. Note that actually, the PCA step is the second step. The <code>prep</code> estimate the required parameters from a training set that can be later applied to other datasets for us.</p>
+<p>Once we have our recipe done, we can explore the results by using <code>tidy()</code>, which makes it possible to visualize what each components look like.</p>
+<pre class="r"><code>tidied_pca &lt;- tidy(pca_prep, 2)
+
+tidied_pca %&gt;% filter(component %in% paste0(&quot;PC&quot;, 1:5)) %&gt;% 
+  mutate(component = fct_inorder(component)) %&gt;% 
+  ggplot(aes(value, terms, fill = terms)) + 
+  geom_col(show.legend = FALSE) + 
+  facet_wrap(~component, nrow = 1) + 
+  labs(y = &quot;&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>In the plot above, we can see how much every component contributes to each <code>category</code>. Clearly, the biggest difference in PC1 is powdered sugar vs. simple syrup. Let’s zoom in on the first four components, and understand which cocktail ingredients contribute in the positive and negative directions.</p>
+<pre class="r"><code>library(tidytext)
+
+tidied_pca %&gt;% 
+  filter(component %in% paste0(&quot;PC&quot;, 1:4)) %&gt;% 
+  group_by(component) %&gt;% 
+  top_n(8, abs(value)) %&gt;% 
+  ungroup() %&gt;% 
+  mutate(terms = reorder_within(terms, abs(value), component)) %&gt;% 
+  ggplot(aes(abs(value), terms, fill = value &gt; 0)) + 
+  geom_col() + 
+  scale_y_reordered() +
+  facet_wrap(~component, scales = &quot;free_y&quot;) + 
+  labs(fill = &quot;positive?&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>So PC1 is about powdered sugar + egg + gin drinks vs. simple syrup + lime + tequila drinks. This is the component that explains the most variation in drinks. PC2 is mostly about vermouth, both sweet and dry.</p>
+<pre class="r"><code>bake(pca_prep, new_data = NULL) %&gt;%
+  ggplot(aes(PC1, PC2, label = name)) +
+  geom_point(aes(color = category), alpha = 0.7, size = 2) +
+  geom_text(check_overlap = TRUE) +
+  labs(color = NULL)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>The plot above shows how the cocktails distributed in the plane of the first two components. The <code>bake()</code> return the computations accroding to the <code>recipe</code>. We can conclude: * Fizzy, egg, poweder sugar drinks are to the left. * Simple syrup, lime, tequila drinks are to the right. * Vermouth drinks are more to the top. Although many labels are mixed together, they may be distinguishable on other components.</p>
+</div>
+<div id="uniform-manifold-approximation-and-projection" class="section level3">
+<h3>Uniform manifold approximation and projection</h3>
+<p>Thanks to the benefits of the <code>tidymodels</code> ecosystem, we can switch out PCA for UMAP, simply by replace <code>step_pca()</code> by <code>step_umap</code>. Before that, don’t forget to import package <code>embed</code>, which provide recipe steps for ways to create embeddings including UMAP.</p>
+<pre class="r"><code>library(embed)
+
+umap_rec &lt;- recipe(~ ., data = cocktails_df) %&gt;% 
+  update_role(name, category, new_role = &quot;id&quot;) %&gt;% 
+  step_normalize(all_predictors()) %&gt;% 
+  step_umap(all_predictors(), num_comp = 5)
+
+umap_prep &lt;- prep(umap_rec)
+
+umap_prep</code></pre>
+<p>Similarly, we can see how the cocktails are distributed in the plane of the first two UMAP components.</p>
+<pre class="r"><code>bake(umap_prep, new_data = NULL) %&gt;%
+  ggplot(aes(umap_1, umap_2, label = name)) +
+  geom_point(aes(color = category), alpha = 0.7, size = 2) +
+  geom_text(check_overlap = TRUE) +
+  labs(color = NULL)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>You can see that the distribution of the first two components of UMAP is totally different from PCA. Obviously, most of the categories didn’t mix together. That’s what I’m talking about. And I can tell, the performance of the classification algorithm trained on the first two components of UMAP will definitely better than of PCA. Let’s prove it on the kernel SVM (Support Vector Machine).</p>
+<pre class="r"><code>library(e1071)
+
+svm_test &lt;- function(num_compo, meth){
+  if(meth == &quot;PCA&quot;){
+    rec &lt;- recipe(~ ., data = cocktails_df) %&gt;% 
+    update_role(name, category, new_role = &quot;id&quot;) %&gt;% 
+    step_normalize(all_predictors()) %&gt;% 
+    step_pca(all_predictors(), num_comp = num_compo)
+  }
+  
+  if(meth == &quot;UMAP&quot;){
+    rec &lt;- recipe(~ ., data = cocktails_df) %&gt;% 
+    update_role(name, category, new_role = &quot;id&quot;) %&gt;% 
+    step_normalize(all_predictors()) %&gt;% 
+    step_umap(all_predictors(), num_comp = num_compo)
+  }
+  
+  df &lt;- bake(prep(rec), new_data = NULL)
+  
+  n &lt;- nrow(df)
+  ntrain &lt;- round(n * 0.75)
+  set.seed(123)
+  
+  tindex &lt;- sample(n, ntrain)
+  train_iris &lt;- df[tindex, ]
+  test_iris &lt;- df[-tindex, ]
+
+  svm1 &lt;- svm(category~., data = train_iris, method = &quot;C-classification&quot;, 
+              kernal=&quot;radial&quot;, gamma = 0.1, cost = 10)
+  
+  prediction &lt;- predict(svm1, test_iris)
+
+  xtab &lt;- table(test_iris$category, prediction)
+  result &lt;- data.frame(test_iris$category, prediction)
+  accuracy &lt;- sum(test_iris$category == prediction) / nrow(test_iris)
+  return(accuracy)
+}</code></pre>
+<p>Here is a function require two variables input, the number of component and demensionality reduction method, and output the accuracy of the classification. Let’s first verify the performance of the first two components.</p>
+<pre class="r"><code>cat(&quot;PCA: &quot;,svm_test(2, &quot;PCA&quot;), &quot;, UMAP: &quot;,svm_test(2,&quot;UMAP&quot;))</code></pre>
+<pre><code>## PCA:  0.6410256 , UMAP:  0.7051282</code></pre>
+<p>Obviously, the first two components of UMAP contains more classification information, at least make the SVM classify more accurate.</p>
+<p>You think that’s the end of it? We know that, in real life, we should always consider the time cost, and that is the meaningful of the dimensionality reduction method. So let add the time cost into the comparision, start by finding out how many components PCA needs to achieve the same accuracy as UMAP.</p>
+<pre class="r"><code>result_pca &lt;- 1:10 %&gt;% map_dbl(svm_test, meth = &quot;PCA&quot;) 
+result_umap &lt;- 1:10 %&gt;% map_dbl(svm_test, meth = &quot;UMAP&quot;) 
+result &lt;- data.frame(pca = result_pca,
+                     umap = result_umap) %&gt;% stack()
+
+result$index &lt;- c(1:10,1:10)
+
+result  %&gt;% 
+  ggplot(aes(index, values, color = ind)) + 
+  geom_line() + 
+  labs(color = &quot;method&quot;)</code></pre>
+<p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p>Seems like the accuracy converge at 75% as the number of components increase, actually after 5 components, PCA performs better than UMAP. Basically, PCA needs at least 5 components to get the height of UMAP.</p>
+<pre class="r"><code>library(microbenchmark)
+time_UMAP &lt;- microbenchmark(svm_test(3,&quot;UMAP&quot;), times = 10, unit=&quot;s&quot;)
+time_PCA &lt;- microbenchmark(svm_test(5,&quot;PCA&quot;), times = 10, unit=&quot;s&quot;)
+cat(&quot;UMAP: &quot;, mean(time_UMAP$time)/1e9, &quot;, PCA: &quot;, mean(time_PCA$time/1e9))</code></pre>
+<pre><code>## UMAP:  1.89997 , PCA:  0.3206325</code></pre>
+<p>Here is the result, PCA undoubtedly crushes UMAP. I know, I know, you mean that this is because the dataset is so small that the advantages of low dimensionality are not fully realezed, and this is just one example and doesn’t tell us much. I totally agree, I really am. <strong>What I would like to say is, the job of a data analyst should not be to blindly pursue new technologies, but to be flexible and efficient in getting tasks done.</strong></p>
+<p>Some of the code for the data mining section is taken from <a href="https://www.youtube.com/watch?v=_1msVvPE_KY">here</a>, I’m very grateful to <a href="https://www.youtube.com/watch?v=_1msVvPE_KY">Julia Silge</a> and <a href="https://www.youtube.com/watch?v=_1msVvPE_KY">David Robinson</a> for their videos.</p>
+<p><strong>Leave a message if you like this blog.</strong></p>
+</div>
