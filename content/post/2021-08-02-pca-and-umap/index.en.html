@@ -1,5 +1,5 @@
 ---
-title: Comparison of data dimensionality reduction methods![](images/abd.png)
+title: Comparison of data dimensionality reduction methods!
 author: Yu Cao
 date: '2021-08-02'
 slug: pca-and-umap
@@ -11,7 +11,7 @@ summary: ''
 authors: []
 lastmod: '2021-10-07T11:40:50+01:00'
 featured: no
-image:
+image: 
   caption: ''
   focal_point: ''
   preview_only: no
@@ -243,7 +243,7 @@ result  %&gt;%
 time_UMAP &lt;- microbenchmark(svm_test(3,&quot;UMAP&quot;), times = 10, unit=&quot;s&quot;)
 time_PCA &lt;- microbenchmark(svm_test(5,&quot;PCA&quot;), times = 10, unit=&quot;s&quot;)
 cat(&quot;UMAP: &quot;, mean(time_UMAP$time)/1e9, &quot;, PCA: &quot;, mean(time_PCA$time/1e9))</code></pre>
-<pre><code>## UMAP:  2.162897 , PCA:  0.3120654</code></pre>
+<pre><code>## UMAP:  1.998064 , PCA:  0.331211</code></pre>
 <p>Here is the result, PCA undoubtedly crushes UMAP. I know, I know, you mean that this is because the dataset is so small that the advantages of low dimensionality are not fully realezed, and this is just one example and doesn’t tell us much. I totally agree, I really am. <strong>What I would like to say is, the job of a data analyst should not be to blindly pursue new technologies, but to be flexible and efficient in getting tasks done.</strong></p>
 <p>Some of the code for the data mining section is taken from <a href="https://www.youtube.com/watch?v=_1msVvPE_KY">here</a>, I’m very grateful to <a href="https://www.youtube.com/watch?v=_1msVvPE_KY">Julia Silge</a> and <a href="https://www.youtube.com/watch?v=_1msVvPE_KY">David Robinson</a> for their videos.</p>
 <p><strong>Leave a message if you like this blog.</strong></p>

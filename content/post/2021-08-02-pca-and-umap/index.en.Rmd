@@ -1,5 +1,5 @@
 ---
-title: Comparison of data dimensionality reduction methods![](images/abd.png)
+title: Comparison of data dimensionality reduction methods!
 author: Yu Cao
 date: '2021-08-02'
 slug: pca-and-umap
@@ -11,7 +11,7 @@ summary: ''
 authors: []
 lastmod: '2021-10-07T11:40:50+01:00'
 featured: no
-image:
+image: 
   caption: ''
   focal_point: ''
   preview_only: no
@@ -24,6 +24,7 @@ Let's start with data mining. If you want to remember the codes, then you need t
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
 library(tidyverse)
+theme_set(theme_light())
 library(janitor)
 ```
 
