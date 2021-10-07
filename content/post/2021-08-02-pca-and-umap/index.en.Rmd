@@ -139,7 +139,7 @@ tidied_pca %>%
 
 So PC1 is about powdered sugar + egg + gin drinks vs. simple syrup + lime + tequila drinks. This is the component that explains the most variation in drinks. PC2 is mostly about vermouth, both sweet and dry.
 
-```{r}
+```{r fig.width=20,fig.height=10}
 bake(pca_prep, new_data = NULL) %>%
   ggplot(aes(PC1, PC2, label = name)) +
   geom_point(aes(color = category), alpha = 0.7, size = 2) +
@@ -168,7 +168,7 @@ umap_prep
 
 Similarly, we can see how the cocktails are distributed in the plane of the first two UMAP components.
 
-```{r}
+```{r fig.width=10,fig.height=5}
 bake(umap_prep, new_data = NULL) %>%
   ggplot(aes(umap_1, umap_2, label = name)) +
   geom_point(aes(color = category), alpha = 0.7, size = 2) +
