@@ -1,5 +1,5 @@
 ---
-title: PCA and UMAP
+title: Comparison of data dimensionality reduction methods![](images/abd.png)
 author: Yu Cao
 date: '2021-08-02'
 slug: pca-and-umap
