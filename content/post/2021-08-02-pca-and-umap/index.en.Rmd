@@ -7,14 +7,14 @@ categories:
   - Data Mining
 tags: []
 subtitle: ''
-summary: ''
+summary: 'Comparision of the performance of Principle Component Analysis and Uniform manifold approximation and projection'
 authors: []
 lastmod: '2021-10-07T11:40:50+01:00'
 featured: no
 image: 
   caption: ''
   focal_point: ''
-  preview_only: no
+  preview_only: yes
 projects: []
 ---
 
