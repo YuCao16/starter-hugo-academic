@@ -129,7 +129,11 @@ pca_rec &lt;- recipe(~ ., data = cocktails_df) %&gt;%
 pca_prep &lt;- prep(pca_rec)
 
 pca_prep</code></pre>
-<p>Here, let’s focus on the variable <code>pca_rec</code>, what we have done is: * First, tell <code>recipe()</code> what’s going on with our model and what data we are using. * Second, we update the role of <code>name</code> and <code>category</code> columns by function <code>update_role()</code>, since these are variables we want to keep around as identifiers for rows. * Then we need to center and scale the numeric predictors. * Finally, we use <code>step_pca</code> for the actual principal component analysis. Note that actually, the PCA step is the second step. The <code>prep</code> estimate the required parameters from a training set that can be later applied to other datasets for us.</p>
+<p>Here, let’s focus on the variable <code>pca_rec</code>, what we have done is:<br />
+- First, tell <code>recipe()</code> what’s going on with our model and what data we are using.
+- Second, we update the role of <code>name</code> and <code>category</code> columns by function <code>update_role()</code>, since these are variables we want to keep around as identifiers for rows.
+- Then we need to center and scale the numeric predictors.
+- Finally, we use <code>step_pca</code> for the actual principal component analysis. Note that actually, the PCA step is the second step. The <code>prep</code> estimate the required parameters from a training set that can be later applied to other datasets for us.</p>
 <p>Once we have our recipe done, we can explore the results by using <code>tidy()</code>, which makes it possible to visualize what each components look like.</p>
 <pre class="r"><code>tidied_pca &lt;- tidy(pca_prep, 2)
 
@@ -162,7 +166,10 @@ tidied_pca %&gt;%
   geom_text(check_overlap = TRUE) +
   labs(color = NULL)</code></pre>
 <p><img src="{{< blogdown/postref >}}index.en_files/figure-html/unnamed-chunk-9-1.png" width="1920" /></p>
-<p>The plot above shows how the cocktails distributed in the plane of the first two components. The <code>bake()</code> return the computations accroding to the <code>recipe</code>. We can conclude: * Fizzy, egg, poweder sugar drinks are to the left. * Simple syrup, lime, tequila drinks are to the right. * Vermouth drinks are more to the top. Although many labels are mixed together, they may be distinguishable on other components.</p>
+<p>The plot above shows how the cocktails distributed in the plane of the first two components. The <code>bake()</code> return the computations accroding to the <code>recipe</code>. We can conclude:
+- Fizzy, egg, poweder sugar drinks are to the left.
+- Simple syrup, lime, tequila drinks are to the right.
+- Vermouth drinks are more to the top. Although many labels are mixed together, they may be distinguishable on other components.</p>
 </div>
 <div id="uniform-manifold-approximation-and-projection" class="section level3">
 <h3>Uniform manifold approximation and projection</h3>
@@ -244,7 +251,7 @@ result  %&gt;%
 time_UMAP &lt;- microbenchmark(svm_test(3,&quot;UMAP&quot;), times = 10, unit=&quot;s&quot;)
 time_PCA &lt;- microbenchmark(svm_test(5,&quot;PCA&quot;), times = 10, unit=&quot;s&quot;)
 cat(&quot;UMAP: &quot;, mean(time_UMAP$time)/1e9, &quot;, PCA: &quot;, mean(time_PCA$time/1e9))</code></pre>
-<pre><code>## UMAP:  2.145106 , PCA:  0.3397623</code></pre>
+<pre><code>## UMAP:  1.903803 , PCA:  0.3264182</code></pre>
 <p>Here is the result, PCA undoubtedly crushes UMAP. I know, I know, you mean that this is because the dataset is so small that the advantages of low dimensionality are not fully realezed, and this is just one example and doesn’t tell us much. I totally agree, I really am. <strong>What I would like to say is, the job of a data analyst should not be to blindly pursue new technologies, but to be flexible and efficient in getting tasks done.</strong></p>
 <p>Some of the code for the data mining section is taken from <a href="https://www.youtube.com/watch?v=_1msVvPE_KY">here</a>, I’m very grateful to <a href="https://www.youtube.com/watch?v=_1msVvPE_KY">Julia Silge</a> and <a href="https://www.youtube.com/watch?v=_1msVvPE_KY">David Robinson</a> for their videos.</p>
 <p><strong>Leave a message if you like this blog.</strong></p>

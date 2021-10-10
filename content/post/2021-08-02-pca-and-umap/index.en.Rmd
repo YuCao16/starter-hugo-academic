@@ -104,11 +104,11 @@ pca_prep <- prep(pca_rec)
 pca_prep
 ```
 
-Here, let's focus on the variable `pca_rec`, what we have done is: 
-- First, tell `recipe()` what's going on with our model and what data we are using. 
-- Second, we update the role of `name` and `category` columns by function `update_role()`, since these are variables we want to keep around as identifiers for rows. 
-- Then we need to center and scale the numeric predictors. 
-- Finally, we use `step_pca` for the actual principal component analysis. Note that actually, the PCA step is the second step. The `prep` estimate the required parameters from a training set that can be later applied to other datasets for us.
+Here, let's focus on the variable `pca_rec`, what we have done is:  
+-   First, tell `recipe()` what's going on with our model and what data we are using. 
+-   Second, we update the role of `name` and `category` columns by function `update_role()`, since these are variables we want to keep around as identifiers for rows. 
+-   Then we need to center and scale the numeric predictors. 
+-   Finally, we use `step_pca` for the actual principal component analysis. Note that actually, the PCA step is the second step. The `prep` estimate the required parameters from a training set that can be later applied to other datasets for us.
 
 Once we have our recipe done, we can explore the results by using `tidy()`, which makes it possible to visualize what each components look like.
 
