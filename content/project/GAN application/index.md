@@ -1,6 +1,6 @@
 ---
-title: Application of Generative Adversarial Networks on Unbalanced Dataset
-summary: GAN on imbalanced Dataset.
+title: Application of Generative Adversarial Networks on Unbalanced Datasets
+summary: Questioning existing methods and exploring new applications, the right way to apply GANs on unbalanced datasets?
 
 tags:
 - Deep Learning
