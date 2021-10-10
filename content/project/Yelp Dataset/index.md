@@ -3,8 +3,8 @@ title: Yelp Elite System Analysis
 summary: Analysis of who best represents the regular user, the elite or something else?
 
 tags:
-- Deep Learning
-- Classification Task
+- Data Mining
+- Other
 date: "2020-04-27T00:00:00Z"
 
 # Optional external URL for project (replaces project detail page).
