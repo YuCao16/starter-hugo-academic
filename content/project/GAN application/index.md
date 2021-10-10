@@ -1,10 +1,11 @@
 ---
-title: The application of GAN.
+title: Application of Generative Adversarial Networks on Unbalanced Dataset
 summary: GAN on imbalanced Dataset.
 
 tags:
 - Deep Learning
 - Classification Task
+- Generative Adversarial Networks
 date: "2010-04-27T00:00:00Z"
 
 # Optional external URL for project (replaces project detail page).
@@ -32,6 +33,9 @@ url_video: ""
 #   Otherwise, set `slides = ""`.
 slides: 
 ---
+## Research Question and Aim
+The plausibility of existing GAN-based (Generative Adversarial Network) oversampling models is questioned through a model remodelling and literature review approach, while the application of GANs to unbalanced datasets is explored, and information security issues when using GANs are considered.
+
 ## Abstract
 Class imbalance is a common problem in data that impedes the predictive performance of classification algorithms. In the task of loan default prediction, the impact of the imbalance on classifiers can often be economically costly. Oversampling methods are commonly used to deal with unbalanced datasets, and a large number of linear interpolation and KNN-based oversampling methods such as SMOTE, ADASYN and their variants are constantly proposed by scholars. However, they have an inherent disadvantage in dealing with high-dimensional and complex datasets. Deep learning networks can model complex data well, and models based on generative adversarial networks(GANs) have made relatively significant progress in generating tabular data  (e.g., database tables). Research at this stage has generally focused on the use of GAN for generating tabular data as novel oversampling tools, however this often requires complex structures and extensive hyper-parameter tuning. As an exploration of the application of GAN to unbalanced datasets, this paper proposes a framework that combines GANs with traditional oversampling methods. We compare our framework with five resampling methods and the results demonstrate that it can lead to better stability of the classifier in the presence of insufficient data.
 

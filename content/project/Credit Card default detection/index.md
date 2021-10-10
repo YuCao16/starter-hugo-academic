@@ -32,10 +32,10 @@ url_video: ""
 #   Otherwise, set `slides = ""`.
 slides: 
 ---
-## Task
-The task is to build a model to predict whether a customer will default on a loan. Use reasonable methods to deal with missing values in the data. Note that imbalances in the data can have a fatal negative impact on the classification algorithm.
+## Research Question and Aim
+The prediction of whether a customer will default on a loan is a long-standing challenge. In this paper, we explore both dealing with missing values in the data and data imbalances, as well as comparing various machine learning methods.
 
 ## Conclusion
-In this report I use two weighted algorithms, weighted logistic regression and weighted random forest, to predict defaults, and the results show that the weighted algorithm achieves signiﬁcant improvements in both accuracy and recall rate over the standard algorithm. There is no signiﬁcant diﬀerence in the values of optimal accuracy and optimal recall between the two weighted algorithms, but weighted regression yielded higher recall rate and AUC in both cases.
+By adding weights to the algorithms we tested the limits of the two machine learning methods. By weighting the methods it is possible to achieve a 100% recall for both algorithms, albeit at the cost of accuracy. But for the prediction of loan defaults, such a trade-off is mostly worthwhile. And of the two algorithms, weighted logistic regression is the more impressive performer, yielded higher recall rate and AUC in both cases.
 
 **If interested in the details of the report, please click on the PDF block at the top of the page.**
