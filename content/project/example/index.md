@@ -33,3 +33,5 @@ url_video: ""
 slides: 
 ---
 In this project, my task was to identify the type of pneumonia based on x-ray photographs, where the labels included normal, common pneumonia and Covid-19.
+
+**If interested in the details of the report, please click on the Code block at the top of the page.**

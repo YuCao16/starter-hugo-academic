@@ -37,3 +37,5 @@ The task is to build a model to predict whether a customer will default on a loa
 
 ## Conclusion
 In this report I use two weighted algorithms, weighted logistic regression and weighted random forest, to predict defaults, and the results show that the weighted algorithm achieves signiﬁcant improvements in both accuracy and recall rate over the standard algorithm. There is no signiﬁcant diﬀerence in the values of optimal accuracy and optimal recall between the two weighted algorithms, but weighted regression yielded higher recall rate and AUC in both cases.
+
+**If interested in the details of the report, please click on the PDF block at the top of the page.**

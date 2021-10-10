@@ -41,3 +41,5 @@ We proposed a framework for handling imbalanced datasets based on CTGAN and SMOT
 While our method performs largely in line with traditional oversampling methods when the amount of data is sufficient, it has a significant performance advantage when the amount of data is insufficient, using only 10% of the samples to bring the performance of the classification algorithm close to that of other oversampling methods.
 
 However, when comparing the performance of RLR and MLP, we found that the MLP trained on the datasets balanced by oversampling method performed significantly worse than the RLR model on the test set. Our conjecture is that the complexity of the model shifts the focus of learning from the features in the default data to the structure of the data, i.e. the MLP tends to recognise synthetic data in the dataset. Future research could test our conjecture by setting up two test sets, one with real data and one with synthetic data, and by observing the performance of the MLP on both sets.
+
+**If interested in the details of the report, please click on the PDF block at the top of the page.**

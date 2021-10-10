@@ -1,6 +1,6 @@
 ---
-title: Yelp Data set analysis. 
-summary: I will analyse the users in the Yelp dataset who have reviewed/rated restaurants in Phoenix to ﬁnd out if the ratings of elite users are close to those of the regular user, and if not, how to select the users who best represent the tastes of the regular user.
+title: Yelp Elite System Analysis
+summary: Analysis of who best represents the regular user, the elite or something else?
 
 tags:
 - Deep Learning
@@ -37,3 +37,5 @@ An active user base is crucial to a platform, however it is the authenticity of 
 
 ## Conclusion
 In general, there is an 8% chance that the elite users of the Yelp platform will mislead the regular user. It is possible to select a subset of users that are more representative of the majority of users’ tastes through some selection methods, i.e. the ratings of these users are more informative. And it is feasible to use machine learning algorithms to predict this subset of users based on their features.
+
+**If interested in the details of the report, please click on the PDF block at the top of the page.**
