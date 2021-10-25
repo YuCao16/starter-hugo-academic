@@ -19,3 +19,8 @@
   package = "netlify-plugin-hugo-cache-resources"
   [plugins.inputs]
     debug = true
+
+[dev]
+  command="npm run build"
+  publish="_site"
+  functions="functions"
