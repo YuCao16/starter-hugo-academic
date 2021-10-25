@@ -1,5 +1,5 @@
 // Credit to Josh Comeau 
-
+const faunadb = require('faunadb');
 exports.handler = async (event) => {
   const q = faunadb.query;
   const client = new faunadb.Client({
