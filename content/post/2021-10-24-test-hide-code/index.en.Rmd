@@ -36,11 +36,12 @@ button{
     border-radius:12px;
     outline: 0;
     transition-duration: 0.4s;
+    border-color:#f44336;
 }
 
 button:hover{
-background-color: #f44336;
-color: white;
+    background-color: #f44336;
+    color: white;
 }
 </style>
 ```{r echo=FALSE, message=FALSE, results='hide', warning=FALSE}
