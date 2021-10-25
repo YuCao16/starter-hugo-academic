@@ -17,6 +17,7 @@
 
 [[plugins]]
   package = "netlify-plugin-hugo-cache-resources"
+  package = "netlify-plugin-inline-functions-env"
   [plugins.inputs]
     debug = true
 
