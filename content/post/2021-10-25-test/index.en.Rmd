@@ -16,8 +16,5 @@ image:
   preview_only: no
 projects: []
 ---
-<form name = "contact">
-  <input type="text" placeholder = "Your Name" name = "name">
-  <button>Send</button>
-</form>
+[say hello!](/.netlify/function-internal/hello)
 
