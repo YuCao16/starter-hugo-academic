@@ -17,5 +17,6 @@ image:
 projects: []
 ---
 
+% include "content/post/2021-10-25-test/hello.js" %
 [say hello!](./hello.js)
 
