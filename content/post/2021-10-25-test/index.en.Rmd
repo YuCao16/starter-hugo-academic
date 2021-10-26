@@ -16,33 +16,8 @@ image:
   preview_only: no
 projects: []
 ---
-<!-- <style> -->
-<!-- button{ -->
-<!--     background-color: white; -->
-<!--     color: black; -->
-<!--     border-radius:12px; -->
-<!--     outline: 0; -->
-<!--     transition-duration: 0.4s; -->
-<!--     border-color:black; -->
-<!-- } -->
-
-<!-- button:hover{ -->
-<!-- background-color: black; -->
-<!-- color: white; -->
-<!-- } -->
-<!-- </style> -->
-
-<!-- <button>Code</button> -->
-
-<i class="fas fa-thumbs-up" onclick="fetch_likes_for_blog()"><span class="no_of_likes">2</span>
-
-<!-- <i class="fas fa-thumbs-up"><span class="no_of_likes">2</span> -->
-
-<!-- <template> -->
-<!--   <button @click="addLike" class="focus:outline-none" :class="{'text-red-600' : likesMaxed}"> -->
-<!--     {{initialLikes}} -->
-<!--     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg> -->
-<!--   </button> -->
-<!-- </template> -->
-
+<form name = "contact">
+  <input type="text" placeholder = "Your Name" name = "name">
+  <button>Send</button>
+</form>
 
