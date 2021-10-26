@@ -17,6 +17,12 @@ image:
 projects: []
 ---
 
-% include "content/post/2021-10-25-test/hello.js" %
-[say hello!](./hello.js)
+[say hello!](/.netlify/functions/hello)
 
+<script src="https://utteranc.es/client.js"
+        repo="[ENTER REPO HERE]"
+        issue-term="pathname" 
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+</script>
