@@ -16,5 +16,6 @@ image:
   preview_only: no
 projects: []
 ---
-[say hello!](/.netlify/function-internal/hello)
+
+[say hello!](./hello.js)
 
